@@ -25,6 +25,7 @@ model User {
   addresses Address[]
   orders    Order[]
   products  Product[] @relation("ProductCreator")
+  reviews   Review[]
 
   // Password reset
   resetPasswordToken  String?
@@ -67,6 +68,7 @@ model Product {
   creator     User          @relation("ProductCreator", fields: [createdBy], references: [id])
   images      ProductImage[]
   orderItems  OrderItem[]
+  reviews     Review[]
 
   // Rating
   ratingAverage Float @default(0)
@@ -155,6 +157,24 @@ model ShippingAddress {
   phone   String
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int      @default(0)
+  comment   String   @db.Text
+  
+  // Relations
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([productId])
 }
 
 // Enums

@@ -1,17 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Star, Check, ArrowLeft } from 'lucide-react';
-import { getProductById, getReviewsByProductId } from '../data/products';
+import { getProductById } from '../data/products';
 import { useCartStore } from '../store/cartStore';
+import { ReviewForm } from '../components/ReviewForm';
+import { ReviewList } from '../components/ReviewList';
 
 export const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const product = id ? getProductById(id) : undefined;
-  const reviews = id ? getReviewsByProductId(id) : [];
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
+  const [refreshReviews, setRefreshReviews] = useState(0);
   const addItem = useCartStore((state) => state.addItem);
 
   if (!product) {
@@ -35,10 +37,11 @@ export const ProductDetail = () => {
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
   };
-
-  const averageRating = reviews.length > 0
-    ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length
-    : product.rating;
+  
+  const handleReviewSubmitted = () => {
+    // Increment to trigger a refresh of the reviews list
+    setRefreshReviews(prev => prev + 1);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -102,7 +105,7 @@ export const ProductDetail = () => {
                     <Star
                       key={i}
                       className={`h-5 w-5 ${
-                        i < Math.floor(averageRating)
+                        i < Math.floor(product.rating)
                           ? 'text-yellow-400 fill-yellow-400'
                           : 'text-gray-300 dark:text-gray-600'
                       }`}
@@ -110,7 +113,7 @@ export const ProductDetail = () => {
                   ))}
                 </div>
                 <span className="ml-2 text-gray-600 dark:text-gray-400">
-                  {averageRating.toFixed(1)} ({reviews.length} reviews)
+                  {product.rating.toFixed(1)} ({product.reviews} reviews)
                 </span>
               </div>
 
@@ -198,42 +201,15 @@ export const ProductDetail = () => {
           </div>
 
           {/* Reviews Section */}
-          {reviews.length > 0 && (
-            <div className="border-t border-gray-200 dark:border-gray-700 p-6 lg:p-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Customer Reviews</h2>
-              <div className="space-y-6">
-                {reviews.map((review) => (
-                  <div key={review.id} className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-b-0">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center">
-                        <div className="flex">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-4 w-4 ${
-                                i < review.rating
-                                  ? 'text-yellow-400 fill-yellow-400'
-                                  : 'text-gray-300 dark:text-gray-600'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        {review.verified && (
-                          <span className="ml-2 text-xs text-green-600 dark:text-green-400 font-medium">
-                            Verified Purchase
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">{review.date}</span>
-                    </div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{review.title}</h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-2">{review.comment}</p>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">by {review.author}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          <div className="p-6 lg:p-8 border-t border-gray-200 dark:border-gray-700">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Reviews</h2>
+            
+            {/* Review Form */}
+            {id && <ReviewForm productId={id} onReviewSubmitted={handleReviewSubmitted} />}
+            
+            {/* Review List */}
+            {id && <ReviewList productId={id} refreshTrigger={refreshReviews} />}
+          </div>
         </div>
       </div>
     </div>

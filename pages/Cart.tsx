@@ -158,9 +158,11 @@ export const Cart = () => {
                 </div>
               </div>
 
-              <button className="w-full px-6 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors mb-4">
-                Proceed to Checkout
-              </button>
+              <Link to="/checkout">
+                <button className="w-full px-6 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors mb-4">
+                  Proceed to Checkout
+                </button>
+              </Link>
 
               <Link
                 to="/category"
